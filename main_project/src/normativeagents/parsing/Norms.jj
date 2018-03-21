@@ -1,0 +1,332 @@
+/**
+ * A grammar for norms based on Andreas & Ruslan's JavaCC parser.
+ */
+options
+{
+	STATIC = false;
+	LOOKAHEAD = 2;
+	FORCE_LA_CHECK = true;
+}
+
+PARSER_BEGIN(NormParser)
+/* Insert the default contents of the file here.  May need imoprts etc.
+*/
+package normativeagents.parsing;
+
+import burlap.mdp.core.action.ActionType;
+import burlap.mdp.core.state.State;
+import burlap.mdp.core.oo.propositional.PropositionalFunction;
+import burlap.mdp.core.oo.state.OOState;
+import burlap.mdp.core.oo.state.OOStateUtilities;
+import burlap.mdp.core.oo.state.ObjectInstance;
+import burlap.mdp.singleagent.SADomain;
+import burlap.mdp.singleagent.oo.OOSADomain;
+import normativeagents.actions.ObjectParameterizedActionType;
+import normativeagents.rabin.ParamPlaceholder;
+import normativeagents.*;
+import rabinizer.formulas.*;
+import rabinizer.exec.*;
+import rabinizer.bdd.*;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+public class NormParser
+{
+	protected Map<String, List<String>> props;
+	protected Map<String, List<String>> objs;
+	protected Map<String, String> normParams;
+	protected Set<String> specificObjects;
+	protected SADomain d = null;
+
+        protected Globals globals;
+
+        public NormParser(Globals globals, java.io.Reader reader) {
+            this(reader);
+            this.globals = globals;
+        }
+
+        public Formula toSingleFormula(List<NormInstance> theNorms) {
+            Formula result = new BooleanConstant(true, globals);
+            for(NormInstance norm : theNorms) {
+                Formula f = norm.toSingleFormula();
+                result = new Conjunction(result, f);
+            }
+            return result;
+        }
+
+	public List<LTLNorm> parse(SADomain d, State s) throws ParseException {
+	            this.d = d;
+                this.props = new HashMap<String, List<String>>();
+                this.specificObjects = new HashSet<String>();
+
+                if(d instanceof OOSADomain) {
+                    for(PropositionalFunction pf : ((OOSADomain)d).propFunctions()) {
+                         props.put(pf.getName(), Arrays.asList(pf.getParameterClasses()));
+                    }
+                }
+
+                for(ActionType aT : d.getActionTypes()) {
+                         if(!(aT instanceof ObjectParameterizedActionType)) {
+                             props.put(aT.typeName(), new ArrayList<String>());
+                         } else {
+                             props.put(aT.typeName(), Arrays.asList(((ObjectParameterizedActionType)aT).getParameterClasses()));
+                         }
+                }
+                Map<String, List<ObjectInstance>> map;
+                if(s instanceof OOState) {
+                    map = OOStateUtilities.objectsByClass((OOState)s);
+                } else {
+                    map = new HashMap<String, List<ObjectInstance>>();
+                }
+
+                 this.objs = new HashMap<String, List<String>>();
+                for(String key : map.keySet()) {
+                    List<String> objects = new ArrayList<String>();
+                    for(ObjectInstance o : map.get(key)) {
+                        objects.add(o.name());
+                    }
+                    this.objs.put(key, objects);
+                }
+
+                globals.bddForVariables.bijectionIdAtom = new BijectionIdAtom();
+                this.normParams = new HashMap<String, String>();
+                return norms();
+	}
+}
+
+PARSER_END(NormParser)
+
+SKIP :
+{
+  " "
+| "\r"
+| "\t"
+| "\n"
+}
+
+TOKEN : /* OPERATORS */
+{
+  < FOP : "F" >
+| < GOP : "G" >
+| < XOP : "X" >
+| < NEG : "!" >
+| < UOP : "U" >
+| < AND : "&" >
+| < OR : "|" >
+| < IMP : "->" >
+| < LPAR : "(" >
+| < RPAR : ")" >
+| < COM : "," >
+| < SEMI : ";" >
+| < COL : ":" >
+}
+
+TOKEN :
+{
+  < TRUE : ("true" | "1") >
+| < FALSE : ("false" | "0") >
+| < ID :
+    (
+      [ "A"-"Z" ]
+    | [ "a"-"z" ]
+    )
+    (
+      [ "0"-"9" ]
+    | [ "A"-"Z" ]
+    | [ "a"-"z" ]
+    )* >
+| < NUM :
+      ([ "0" - "9"])+
+      ( (".") (["0"-"9"])+)?
+  >
+}
+
+List<LTLNorm> norms() :
+{
+	LTLNorm result;
+        List<LTLNorm> toReturn = new ArrayList<LTLNorm>();
+	Formula r;
+        double weight = 1.0;
+        Token t;
+}
+{
+        (t = < NUM > { weight = Double.parseDouble(t.image); } < COL >)?
+	result = singlenorm()
+        {
+            result.setWeight(weight);
+            toReturn.add(result);
+            weight = 1.0;
+        }
+	(
+		< SEMI > 
+                (t = < NUM > { weight = Double.parseDouble(t.image); } < COL >)?
+                result = singlenorm()
+		{
+                        result.setWeight(weight);
+                        toReturn.add(result);
+                        weight = 1.0;
+		}
+	)*
+	{
+            return toReturn;
+	}
+}
+
+LTLNorm singlenorm() :
+{
+	Formula formula;
+	normParams.clear();
+}
+{
+	formula = implication()
+        {
+            return new LTLNorm(formula, normParams, specificObjects, objs);
+        }
+}
+
+/* A stop-gap measure - we'll also need to include parameters and
+ * temporal operators.
+ */
+
+Formula implication() :
+{
+ Formula r = null;
+ Formula result;
+}
+{
+  result = disjunction()
+  (
+   < IMP > r = disjunction()
+   { result = new Implication(result, r); }
+  )?
+  { return result; }
+}
+
+Formula disjunction() :
+{
+  Formula r = null;
+  Formula result;
+}
+{
+  result = conjunction()
+  (
+    < OR > r = conjunction()
+    {
+      result = new Disjunction(result, r);
+    }
+  )*
+  {
+    return result;
+  }
+}
+
+Formula conjunction() :
+{
+  Formula result;
+  Formula r = null;
+}
+{
+  result = until()
+  (
+    < AND > r = until()
+    {
+      result = new Conjunction(result, r);
+    }
+  )*
+  {
+    return result;
+  }
+}
+
+Formula until() :
+{
+  Formula result;
+  Formula r = null;
+}
+{
+  result = unaryOp()
+  (
+    < UOP > r = unaryOp()
+    {
+ 	  result = new UOperator(result, r);
+    }
+  )*
+  {
+    return result;
+  }
+}
+
+Formula unaryOp() :
+{
+  Formula f;
+}
+{
+  < FOP > f = unaryOp()
+  {
+    return new FOperator(f);
+  }
+| < GOP > f = unaryOp()
+  {
+    return new GOperator(f);
+  }
+| < XOP > f = unaryOp()
+  {
+    return new XOperator(f);
+  }
+| < NEG > f = unaryOp()
+  {
+    return new Negation(f);
+  }  
+| f = atom()
+  {
+    return f;
+  }
+}
+
+Formula atom() :
+{
+  String atomString;
+  int id;
+  Formula f;
+  String nextParam;
+  List<String> params = new ArrayList<String>();
+}
+{
+  < TRUE >
+  {
+	return new BooleanConstant(true, globals);
+  }
+| < FALSE >
+  {
+	return new BooleanConstant(false, globals);
+  }
+|  atomString = < ID >.image (< LPAR >
+   	      	nextParam = < ID >.image { params.add(nextParam); }
+		( < COM > nextParam = < ID >.image { params.add(nextParam); } )*
+   	      < RPAR >) ?
+  {
+	if(!props.containsKey(atomString)) throw new ParseException("Can't read atom " + atomString);
+	if(params.size() != props.get(atomString).size()) throw new ParseException();
+	for(int i =0; i < params.size(); i++) {
+		String param = params.get(i);
+		String cls = props.get(atomString).get(i);
+		if(objs.get(cls).contains(param)) {
+            specificObjects.add(param);
+		}
+		if(normParams.containsKey(param) && !normParams.get(param).equals(cls)) throw new ParseException();
+		else if(!normParams.containsKey(param)) {
+		     normParams.put(param, cls);
+		}
+	}
+        if(params.isEmpty()) {
+            int i = globals.bddForVariables.bijectionIdAtom.id(atomString);
+            return new Literal(atomString, i, false, globals);
+        }
+        return new ParamPlaceholder(atomString, params, globals);
+  }
+| < LPAR > f = implication() < RPAR >
+  {
+    return f;
+  }
+}
