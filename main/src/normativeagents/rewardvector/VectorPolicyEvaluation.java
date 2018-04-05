@@ -59,7 +59,7 @@ public class VectorPolicyEvaluation extends RVValueIteration {
      * @param maxEvalIterations the maximum number of evaluation iterations to perform before terminating policy evaluation
      */
     public VectorPolicyEvaluation(SADomain domain, double gamma, HashableStateFactory hashingFactory,
-                                  double maxEvalDelta, int maxEvalIterations, double alpha, Set<HashableState> noUpdate,
+                                  double maxEvalDelta, int maxEvalIterations, Set<HashableState> noUpdate,
                                   RewardVectorFunction rvf, int size, Comparator comp, boolean ignoreTF) {
         super(domain, gamma, hashingFactory, maxEvalDelta, maxEvalIterations, rvf, size, comp,
                 ignoreTF, noUpdate);
@@ -77,9 +77,9 @@ public class VectorPolicyEvaluation extends RVValueIteration {
      * @param maxEvalIterations the maximum number of evaluation iterations to perform before terminating policy evaluation
      */
     public VectorPolicyEvaluation(SADomain domain, double gamma, HashableStateFactory hashingFactory,
-                                  double maxEvalDelta, int maxEvalIterations, double alpha, Set<HashableState> noUpdate,
+                                  double maxEvalDelta, int maxEvalIterations, Set<HashableState> noUpdate,
                                   RewardVectorFunction rvf, int size, Comparator comp) {
-        this(domain, gamma, hashingFactory, maxEvalDelta, maxEvalIterations, alpha, noUpdate, rvf, size, comp, true);
+        this(domain, gamma, hashingFactory, maxEvalDelta, maxEvalIterations, noUpdate, rvf, size, comp, true);
     }
 
 

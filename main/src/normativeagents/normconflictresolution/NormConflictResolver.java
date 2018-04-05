@@ -74,7 +74,6 @@ public class NormConflictResolver {
     List<Action> nextActions;
     protected Globals globals;
 
-    private double riskParam;
     public double discount;
     public Map<Pair<HashableState,HashableState>,RealVector> weightedGraph;
     public CRDRAProductMDP product;
@@ -197,7 +196,6 @@ public class NormConflictResolver {
         Logger.getLogger(NormConflictResolver.class).setLevel(Level.WARN);
         this.discount = discount;
         normInstances.forEach(ni -> ni.setCRDRA(new CRDRA(ni.dra, ni.weight, discount)));
-        this.riskParam = riskParam;
 
         if(init) {
             plan();
@@ -703,7 +701,7 @@ public class NormConflictResolver {
 
         WeightedGraphRVF rf = new WeightedGraphRVF(weightedGraph, hashingFactory);
         VectorPolicyEvaluation wnraEval = new VectorPolicyEvaluation(product.domain, discount, hashingFactory,
-                delta, maxiters, riskParam, noUpdate, rf, stateValues.size(), stateValues.getComparator());
+                delta, maxiters, noUpdate, rf, stateValues.size(), stateValues.getComparator());
 
         wnraEval.evaluatePolicy((EnumerablePolicy)policy, product.initialState);
 
@@ -726,7 +724,7 @@ public class NormConflictResolver {
 
             
             rpValues = new VectorPolicyEvaluation(product.domain, discount, hashingFactory, delta, maxiters,
-                    riskParam, noUpdate,  rf, stateValues.size(), stateValues.getComparator());
+                     noUpdate,  rf, stateValues.size(), stateValues.getComparator());
 
             rpValues.evaluatePolicy(new RestrictedRandomPolicy(product.domain,new HashMap<>(),hashingFactory), product.initialState);
 
