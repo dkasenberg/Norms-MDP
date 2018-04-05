@@ -195,7 +195,7 @@ public class NormConflictResolver {
 
         observer = new NCREnvironmentObserver(this);
 
-        Logger.getLogger(NormConflictResolver.class).setLevel(Level.INFO);
+        Logger.getLogger(NormConflictResolver.class).setLevel(Level.WARN);
         this.discount = discount;
         normInstances.forEach(ni -> ni.setCRDRA(new CRDRA(ni.dra, ni.weight, discount)));
 

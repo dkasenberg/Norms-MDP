@@ -1,0 +1,241 @@
+ /**
+ * The grammar of LTL formulas.
+ *
+ * @author Andreas & Ruslan
+ *
+ * JavaCC template file created by SF JavaCC plugin 1.5.17+ wizard for JavaCC 1.5.0+
+ */
+options
+{
+  JDK_VERSION = "1.5";
+
+  LOOKAHEAD= 2;
+  FORCE_LA_CHECK = true;
+
+  STATIC = false;
+}
+
+PARSER_BEGIN(LTLParser)
+package rabinizer.parser;
+
+import rabinizer.formulas.*;
+import rabinizer.exec.*;
+import rabinizer.bdd.*;
+
+public class LTLParser
+{
+
+  public Globals globals;
+  /**
+   * Parse with new bijection between identifiers and atoms.
+   */
+
+  public LTLParser(Globals globals, java.io.InputStream stream) {
+     this(stream, null, globals);
+     this.globals = globals;
+  }
+  /** Constructor with InputStream and supplied encoding */
+  public LTLParser(java.io.InputStream stream, String encoding, Globals globals) {
+    this(stream, encoding);
+    this.globals = globals;
+  }
+
+  public LTLParser(Globals globals, java.io.Reader reader) {
+    this(reader);
+    this.globals = globals;
+  }
+
+  public Formula parse() throws ParseException
+  {
+    globals.bddForVariables.bijectionIdAtom = new BijectionIdAtom();
+    return formula();
+  }
+
+
+
+ /**
+  * Parse using the previous bijection between identifiers and atoms.
+  * If there is no previous bijection, create a new bijection. 
+  */
+  public Formula parsePreviousAtoms() throws ParseException
+  {
+	if (globals.bddForVariables.bijectionIdAtom == null) globals.bddForVariables.bijectionIdAtom = new BijectionIdAtom();
+	return formula();
+  }
+}
+
+PARSER_END(LTLParser)
+
+SKIP :
+{
+  " "
+| "\r"
+| "\t"
+| "\n"
+}
+
+TOKEN : /* OPERATORS */
+{
+  < FOP : "F" >
+| < GOP : "G" >
+| < XOP : "X" >
+| < NEG : "!" >
+| < UOP : "U" >
+| < AND : "&" >
+| < OR : "|" >
+| < LPAR : "(" >
+| < RPAR : ")" >
+}
+
+TOKEN :
+{
+  < TRUE : ("true" | "1") >
+| < FALSE : ("false" | "0") >
+| < ID :
+    (
+      [ "A"-"Z" ]
+    | [ "a"-"z" ]
+    )
+    (
+      [ "0"-"9" ]
+    | [ "A"-"Z" ]
+    | [ "a"-"z" ]
+    )* >
+}
+
+Formula formula() :
+{
+  Formula f;
+}
+{
+  f = disjunction() < EOF >
+  {
+    return f;
+  }
+}
+
+Formula disjunction() :
+{
+  Formula r = null;
+  Formula result;
+}
+{
+  result = conjunction()
+  (
+    < OR > r = conjunction()
+    {
+      result = new Disjunction(result, r);
+    }
+  )*
+  {
+    return result;
+  }
+}
+
+Formula conjunction() :
+{
+  Formula result;
+  Formula r = null;
+}
+{
+  result = until()
+  (
+    < AND > r = until()
+    {
+      result = new Conjunction(result, r);
+    }
+  )*
+  {
+    return result;
+  }
+}
+
+Formula until() :
+{
+  Formula result;
+  Formula r = null;
+}
+{
+  result = unaryOp()
+  (
+    < UOP > r = unaryOp()
+    {
+ 	  result = new UOperator(result, r);
+    }
+  )*
+  {
+    return result;
+  }
+}
+
+//Formula negation() :
+//{
+//  Formula f;
+//  boolean neg = false;
+//}
+//{
+///*  (< NEG >
+//  {
+//    neg = true;
+//  }
+//  )?
+//*/
+//  f = tempOp()
+//  {
+//    if (neg) return f.negated();
+//    else return f;
+//  }
+//}
+
+Formula unaryOp() :
+{
+  Formula f;
+}
+{
+  < FOP > f = unaryOp()
+  {
+    return new FOperator(f);
+  }
+| < GOP > f = unaryOp()
+  {
+    return new GOperator(f);
+  }
+| < XOP > f = unaryOp()
+  {
+    return new XOperator(f);
+  }
+| < NEG > f = unaryOp()
+  {
+    return new Negation(f);
+  }  
+| f = atom()
+  {
+    return f;
+  }
+}
+
+Formula atom() :
+{
+  String atomString;
+  int id;
+  Formula f;
+}
+{
+  < TRUE >
+  {
+	return new BooleanConstant(true, globals);
+  }
+| < FALSE >
+  {
+	return new BooleanConstant(false, globals);
+  }
+| atomString = < ID >.image
+  {
+	id = globals.bddForVariables.bijectionIdAtom.id(atomString);
+	return new Literal(atomString, id, false, globals);
+  }
+| < LPAR > f = disjunction() < RPAR >
+  {
+    return f;
+  }
+}
