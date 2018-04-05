@@ -59,7 +59,7 @@ public class CRDRAActionType extends WrapperActionType {
             this.mdp = mdp;
             this.crdras = crdras;
             this.norms = norms;
-            int length = norms.stream().mapToInt(n -> n.isNumerical ? n.wnraSize : n.normInstances.size()).sum();
+            int length = norms.stream().mapToInt(n -> n.normInstances.size()).sum();
 
             this.possibleSettings =getPossibleSettings(length);
         }

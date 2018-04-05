@@ -64,33 +64,17 @@ public class CRDRAProductModel implements FullStateModel {
         int settingsCounter = 0;
         List<Integer> newQs = new ArrayList<>();
         for(int i = 0; i < crdras.size(); i++) {
-            LTLNorm norm = crdras.get(i).norm;
-            if(norm.isNumerical) {
-                for(int j = i; j < i + norm.normInstances.size(); j++) {
-                    if(s.qs.get(j) == -1 && a.settings[settingsCounter] == GIVEUP) {
-                        newQs.add(crdras.get(j).ACC);
-                    } else {
-                        int newState = mdp.getNextRabinState(s.qs.get(j), crdras.get(j), derabinizedSp);
-                        if(a.settings[settingsCounter + newState + 1] == MAINTAIN) {
-                            newQs.add(newState);
-                        }
-                    }
-                }
-                i += norm.normInstances.size() - 1;
-                settingsCounter += norm.wnraSize;
-            } else {
-                switch(a.settings[settingsCounter]) {
-                    case GIVEUP:
-                        newQs.add(crdras.get(i).ACC);
-                        break;
-                    case BREAKONCE:
-                        newQs.add(s.qs.get(i));
-                        break;
-                    case MAINTAIN:
-                        newQs.add(mdp.getNextRabinState(s.qs.get(i), crdras.get(i), derabinizedSp));
-                }
-                settingsCounter++;
+            switch(a.settings[settingsCounter]) {
+                case GIVEUP:
+                    newQs.add(crdras.get(i).ACC);
+                    break;
+                case BREAKONCE:
+                    newQs.add(s.qs.get(i));
+                    break;
+                case MAINTAIN:
+                    newQs.add(mdp.getNextRabinState(s.qs.get(i), crdras.get(i), derabinizedSp));
             }
+            settingsCounter++;
         }
         return new CRDRAProductState(derabinizedSp, newQs);
     }

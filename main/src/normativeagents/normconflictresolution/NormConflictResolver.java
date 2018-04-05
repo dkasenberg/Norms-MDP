@@ -136,6 +136,8 @@ public class NormConflictResolver {
      * */
     public NormConflictResolver(String normText, SADomain d, State s, HashableStateFactory hf, double discount,
                                 boolean init, Collection<LTLNorm> parsedNorms) {
+
+
         norms = new ArrayList<>(parsedNorms);
         origMDP = new MDPContainer(d,s,hf);
 
@@ -193,7 +195,7 @@ public class NormConflictResolver {
 
         observer = new NCREnvironmentObserver(this);
 
-        Logger.getLogger(NormConflictResolver.class).setLevel(Level.WARN);
+        Logger.getLogger(NormConflictResolver.class).setLevel(Level.INFO);
         this.discount = discount;
         normInstances.forEach(ni -> ni.setCRDRA(new CRDRA(ni.dra, ni.weight, discount)));
 
@@ -379,28 +381,12 @@ public class NormConflictResolver {
                         LTLNorm norm = crdraList.get(i).norm;
                         double breakOnceWeight = 1.0;
                         double giveUpWeight = 1.0/(1.0 - discount);
-                        if(norm.isNumerical) {
-                            CRDRAProductState ps = (CRDRAProductState)s.s();
-                            for(int j = 0; j < norm.normInstances.size(); j++) {
-                                if(settings[settingsCounter]== GIVEUP && ps.qs.get(i+j)==-1) {
-                                    totalWeight.addToEntry(i+j, giveUpWeight);
-                                    continue;
-                                }
-                                int newState = product.getNextRabinState(ps.qs.get(i+j), crdraList.get(i+j), sp.s());
-                                if(settings[settingsCounter + newState + 1] == BREAKONCE) {
-                                    totalWeight.addToEntry(i+j, breakOnceWeight);
-                                }
-                            }
-                            i += norm.normInstances.size() -1;
-                            settingsCounter += norm.wnraSize;
-                        } else {
-                            if(settings[settingsCounter] == BREAKONCE) {
-                                totalWeight.addToEntry(i, breakOnceWeight);
-                            } else if(settings[settingsCounter] == GIVEUP) {
-                                totalWeight.addToEntry(i, giveUpWeight);
-                            }
-                            settingsCounter++;
+                        if(settings[settingsCounter] == BREAKONCE) {
+                            totalWeight.addToEntry(i, breakOnceWeight);
+                        } else if(settings[settingsCounter] == GIVEUP) {
+                            totalWeight.addToEntry(i, giveUpWeight);
                         }
+                        settingsCounter++;
                     }
 
                     return totalWeight;

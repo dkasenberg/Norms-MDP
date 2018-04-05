@@ -60,9 +60,9 @@ public class KLDivergenceWeightOptimizer extends VectorPolicyEvaluation {
 
     public KLDivergenceWeightOptimizer(SADomain domain, RewardVectorFunction rf, double gamma,
                                        HashableStateFactory hashingFactory, double maxDelta,
-                                       int maxIterations, double alpha, int vectorSize, Comparator vectorComp,
+                                       int maxIterations, int vectorSize, Comparator vectorComp,
                                        Map<HashableState, Set<Action>> correctPolicy, State initialState, double learningRate, double epsilon) {
-        super(domain, gamma, hashingFactory, maxDelta, maxIterations, alpha, new HashSet<>(), rf, vectorSize, vectorComp);
+        super(domain, gamma, hashingFactory, maxDelta, maxIterations, new HashSet<>(), rf, vectorSize, vectorComp);
         this.correctPolicy = correctPolicy;
         this.initialState = initialState;
         this.learningRate = learningRate;
@@ -73,10 +73,10 @@ public class KLDivergenceWeightOptimizer extends VectorPolicyEvaluation {
 
     public KLDivergenceWeightOptimizer(SADomain domain, RewardVectorFunction rf, double gamma,
                                        HashableStateFactory hashingFactory, double maxDelta, int maxIterations,
-                                       double alpha, Set<HashableState> noUpdate, int vectorSize,
+                                       Set<HashableState> noUpdate, int vectorSize,
                                        Comparator vectorComp, Map<HashableState,Set<Action>> correctPolicy, State initialState,
                                        double learningRate, double epsilon) {
-        super(domain, gamma, hashingFactory, maxDelta, maxIterations, alpha, noUpdate, rf, vectorSize, vectorComp);
+        super(domain, gamma, hashingFactory, maxDelta, maxIterations, noUpdate, rf, vectorSize, vectorComp);
         this.correctPolicy = correctPolicy;
         this.initialState = initialState;
         this.learningRate = learningRate;
@@ -90,10 +90,10 @@ public class KLDivergenceWeightOptimizer extends VectorPolicyEvaluation {
 
     public KLDivergenceWeightOptimizer(SADomain domain, RewardVectorFunction rf, double gamma,
                                        HashableStateFactory hashingFactory, double maxDelta, int maxIterations,
-                                       double alpha, Set<HashableState> noUpdate, int vectorSize,
+                                       Set<HashableState> noUpdate, int vectorSize,
                                        Comparator vectorComp, Map<HashableState,Set<Action>> correctPolicy, boolean ignoreTF,
                                        State initialState, double learningRate, double epsilon) {
-        super(domain, gamma, hashingFactory, maxDelta, maxIterations, alpha, noUpdate, rf, vectorSize, vectorComp, ignoreTF);
+        super(domain, gamma, hashingFactory, maxDelta, maxIterations, noUpdate, rf, vectorSize, vectorComp, ignoreTF);
         this.correctPolicy = correctPolicy;
         this.initialState = initialState;
         this.learningRate = learningRate;

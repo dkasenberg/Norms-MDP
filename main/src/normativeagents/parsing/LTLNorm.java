@@ -23,7 +23,6 @@ import java.util.stream.Collectors;
 public class LTLNorm {
     public Formula formula;
     public List<NormInstance> normInstances;
-    public boolean isNumerical;
     public int wnraSize;
         
     public LTLNorm(Formula form, Map<String, String> normParams, Set<String> specificObjects, Map<String, List<String>> objs) {
@@ -31,7 +30,6 @@ public class LTLNorm {
         List<Formula> instances = formula.generalize(normParams, specificObjects, objs);
         this.normInstances = instances.stream()
                 .map(i -> new NormInstance(i.toNNF(), this)).collect(Collectors.toList());
-        this.isNumerical = false;
     }
 
     @Override
@@ -51,9 +49,6 @@ public class LTLNorm {
     }
 
     public void setWNRASize(int wnraSize) {
-//        this.isNumerical = false;
-        this.isNumerical = (wnraSize < normInstances.size());
-//        this.isNumerical = true;
         this.wnraSize = wnraSize;
     }
 
