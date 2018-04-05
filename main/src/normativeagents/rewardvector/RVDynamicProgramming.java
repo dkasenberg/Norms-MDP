@@ -4,12 +4,10 @@ import burlap.behavior.policy.EnumerablePolicy;
 import burlap.behavior.policy.PolicyUtils;
 import burlap.behavior.policy.support.ActionProb;
 import burlap.behavior.singleagent.MDPSolver;
-import burlap.behavior.singleagent.options.Option;
 import burlap.behavior.singleagent.planning.stochastic.dpoperator.BellmanOperator;
 import burlap.mdp.core.action.Action;
 import burlap.mdp.core.state.State;
 import burlap.mdp.singleagent.SADomain;
-import burlap.mdp.singleagent.environment.EnvironmentOutcome;
 import burlap.mdp.singleagent.model.FactoredModel;
 import burlap.mdp.singleagent.model.FullModel;
 import burlap.mdp.singleagent.model.SampleModel;
@@ -64,8 +62,6 @@ public class RVDynamicProgramming extends MDPSolver implements VectorValueFuncti
 	protected Set<HashableState> noUpdate;
 
 
-
-
 	/**
 	 * Common init method for {@link burlap.behavior.singleagent.planning.stochastic.DynamicProgramming} instances. This will automatically call the
 	 * {@link burlap.behavior.singleagent.MDPSolver#solverInit(SADomain, double, HashableStateFactory)}
@@ -83,10 +79,11 @@ public class RVDynamicProgramming extends MDPSolver implements VectorValueFuncti
 
 		this.valueFunction = new HashMap<HashableState, RealVector>();
 
+		this.size = vectorSize;
 		this.possibleSettings = CRDRAActionType.getPossibleSettings(size);
 
 		this.vectorCompare = vectorCompare;
-		this.size = vectorSize;
+
 		this.rvf = rvf;
 		this.ignoreTF = ignoreTF;
 
@@ -354,7 +351,6 @@ public class RVDynamicProgramming extends MDPSolver implements VectorValueFuncti
 	 * @return the new value of the state
 	 */
 	protected RealVector performFixedPolicyBellmanUpdateOn(HashableState sh, EnumerablePolicy p){
-//		System.out.println(sh.s());
 
 		if(!ignoreTF && this.model.terminal(sh.s())){
 			//terminal states always have a state value of 0
@@ -381,9 +377,6 @@ public class RVDynamicProgramming extends MDPSolver implements VectorValueFuncti
 			RealVector q = this.computeQ(sh.s(), ga);
 			weightedQ = weightedQ.add(q.mapMultiply(policyProb));
 		}
-
-
-
 
 		valueFunction.put(sh, weightedQ);
 
@@ -427,7 +420,7 @@ public class RVDynamicProgramming extends MDPSolver implements VectorValueFuncti
 			newGA.setSettings(settings);
 			return newGA;
 		}).map((newGA) -> {
-			CRDRAProductState newSp = (CRDRAProductState)((CRDRAProductModel) ((FactoredModel) model).getStateModel()).getRabinizedState((CRDRAProductState) s, newGA, sp);
+			CRDRAProductState newSp = (CRDRAProductState)((CRDRAProductModel) ((FactoredModel) model).getStateModel()).getProductTransition((CRDRAProductState) s, newGA, sp);
 			RealVector value = this.rvf.rv(s,newGA,newSp).add(this.value(newSp).mapMultiply(this.gamma));
 			return new Triple<>(newGA, newSp, value);
 		}).filter(t->noUpdate.contains(hashingFactory.hashState(s)) || !noUpdate.contains(hashingFactory.hashState(t.getMiddle()))).max(Comparator.comparing(p -> p.getRight(),

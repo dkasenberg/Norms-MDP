@@ -56,7 +56,7 @@ public class WeightedGraphRVF implements RewardVectorFunction {
                                 l.getEntry(j)).max().orElse(0) + 0.01);
             }
         }
-        
+
 //        this.addToAll= 0;
     }
     

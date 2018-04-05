@@ -305,12 +305,12 @@ public class NormConflictResolver {
      * */
     private void plan() {
 
-        double delta = 0.01;
-        int maxiters = 1000;
+        double delta = 0.001;
+        int maxiters = 10000;
 
         List<CRDRA> crdraList = normInstances.stream().map(ni -> ni.crdra).collect(Collectors.toList());
 
-        Comparator<RealVector> comparator = new WeightedSumComparator(crdraList,0.0001);
+        Comparator<RealVector> comparator = new WeightedSumComparator(crdraList,0.01);
 
 //        This hack is frankly bizarre.  Turns out that things don't work if you don't reference w.accSR somewhere up here...
 //        This is why the Log4j level changed whether the algorithm worked - apparently whether the "log.info(...w.accSR)" ran
@@ -404,6 +404,7 @@ public class NormConflictResolver {
         bestPolicies = new HashMap<>();
         
         bestActions = new HashMap<>();
+
 
 //        Determine optimal policies within the AMECs.
         accComponents.forEach(acc -> {
@@ -519,17 +520,21 @@ public class NormConflictResolver {
 
         for(HashableState hs : S) {
             List<QValueVector> qs = stateValues.qValues(hs.s());
+
             RealVector maxQ = qs.stream().map(q -> q.q).max(comparator).get();
-            bestActions.put(hs, qs.stream().filter(q -> comparator.compare(q.q, maxQ) == 0).map(q -> q.a)
+            bestActions.put(hs, qs.stream().filter(q -> comparator.compare(q.q, maxQ) == 0).map(q -> ((CRDRAAction)q.a).action)
                     .collect(Collectors.toSet()));
+
             if(noUpdate.contains(hs)) continue;
             log.debug("----NEXT STATE OPTIMAL ACTION");
             log.debug(hs.s());
             log.debug(bestActions.get(hs));
             log.debug(qs);
+
         }
+
         
-        log.debug("Determined optimal actions for all states");
+        log.info("Determined optimal actions for all states");
     }
 
     /**
@@ -766,8 +771,6 @@ public class NormConflictResolver {
                 .max((Pair<HashableState, RealVector> t, Pair<HashableState, RealVector> t1) -> comp.compare(t.getRight(), t1.getRight())).get().getLeft();
         Action bestAction;
 
-
-        
         if(initialValues.containsKey(curState) && comp.compare(stateValues.value(curState), initialValues.get(curState)) <= 0){ //&& stateValues.value(curState) <= initialValues.get(curState)) {
             bestAction = bestPolicies.get(curState).action(curState.s());
             if(bestAction instanceof CRDRAAction) {

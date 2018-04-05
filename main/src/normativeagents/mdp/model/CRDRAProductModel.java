@@ -8,7 +8,6 @@ import burlap.mdp.singleagent.model.statemodel.SampleStateModel;
 import normativeagents.actions.CRDRAAction;
 import normativeagents.mdp.CRDRAProductMDP;
 import normativeagents.mdp.state.CRDRAProductState;
-import normativeagents.parsing.LTLNorm;
 import normativeagents.rabin.CRDRA;
 
 import java.util.ArrayList;
@@ -40,28 +39,21 @@ public class CRDRAProductModel implements FullStateModel {
         CRDRAProductState ps = (CRDRAProductState)s;
 
         if(pa.action.actionName().equals(ACTION_SEE_FIRST_STATE)) {
-            return Arrays.asList(new StateTransitionProb(getRabinizedState(ps, pa, mdp.mdp.initialState), 1.0));
+            return Arrays.asList(new StateTransitionProb(getProductTransition(ps, pa, mdp.mdp.initialState), 1.0));
         }
 
         return model.stateTransitions(ps.s, pa.action)
                 .stream()
                 .map(tp -> {
-                    State sp = getRabinizedState(ps, pa, tp.s);
+                    State sp = getProductTransition(ps, pa, tp.s);
                     return new StateTransitionProb(sp, tp.p);
                 }).collect(Collectors.toList());
 
-//                .getTransitions(derabinizeState(s), groundedAction)
-//                .stream()
-//                .map(tp -> {
-//                    if(!(groundedAction instanceof CRDRAAction)) return tp;
-//                    CRDRAAction ga = (CRDRAAction)groundedAction;
-//                    State sp = getRabinizedState(s, ga, tp.s);
-//                    return new TransitionProbability(sp, tp.p);
-//                }).collect(Collectors.toList());
     }
 
-    public State getRabinizedState(CRDRAProductState s, CRDRAAction a, State derabinizedSp) {
+    public State getProductTransition(CRDRAProductState s, CRDRAAction a, State sp) {
         int settingsCounter = 0;
+
         List<Integer> newQs = new ArrayList<>();
         for(int i = 0; i < crdras.size(); i++) {
             switch(a.settings[settingsCounter]) {
@@ -72,11 +64,11 @@ public class CRDRAProductModel implements FullStateModel {
                     newQs.add(s.qs.get(i));
                     break;
                 case MAINTAIN:
-                    newQs.add(mdp.getNextRabinState(s.qs.get(i), crdras.get(i), derabinizedSp));
+                    newQs.add(mdp.getNextRabinState(s.qs.get(i), crdras.get(i), sp));
             }
             settingsCounter++;
         }
-        return new CRDRAProductState(derabinizedSp, newQs);
+        return new CRDRAProductState(sp, newQs);
     }
 
     public State sample(State s, Action a) {

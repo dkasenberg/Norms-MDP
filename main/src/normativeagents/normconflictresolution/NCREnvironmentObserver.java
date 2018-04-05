@@ -39,6 +39,7 @@ public class NCREnvironmentObserver implements EnvironmentObserver {
     }
     
     protected void updateActions() {
+
         ncr.restricted.domain.getActionTypes().stream().map((a) -> (RestrictedActionType)a).forEach((ra) -> {
             ra.setActionRestriction(ncr.nextActions);
         });
