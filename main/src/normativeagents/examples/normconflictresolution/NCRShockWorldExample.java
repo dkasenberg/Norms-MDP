@@ -15,10 +15,10 @@ import normativeagents.statehashing.HashableWrapperStateFactory;
 /**
  * Created by dkasenberg on 4/6/18.
  */
-public class ShockWorldExample {
+public class NCRShockWorldExample {
 
     public static void main(String[] args) {
-        ShockWorldExample example = new ShockWorldExample();
+        NCRShockWorldExample example = new NCRShockWorldExample();
         example.runExample(2);
     }
 

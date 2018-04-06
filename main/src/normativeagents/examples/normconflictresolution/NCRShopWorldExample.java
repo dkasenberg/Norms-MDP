@@ -15,11 +15,11 @@ import normativeagents.statehashing.HashableWrapperStateFactory;
 /**
  * Created by dkasenberg on 4/6/18.
  */
-public class ShopWorldExample {
+public class NCRShopWorldExample {
 
 
     public static void main(String[] args) {
-        ShopWorldExample example = new ShopWorldExample();
+        NCRShopWorldExample example = new NCRShopWorldExample();
         example.runExample();
     }
 

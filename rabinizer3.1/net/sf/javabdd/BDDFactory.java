@@ -60,7 +60,7 @@ public abstract class BDDFactory {
     /**
      * <p>Initializes a BDD factory of the given type with the given initial
      * node table size and operation cache size.  The type is a string that
-     * can be "buddy", "cudd", "cal", "j", "java", "jdd", "test", "typed", or
+     * can be "buddy", "cudd", "cal", "j", "java", "jdd", "runExample", "typed", or
      * a name of a class that has an init() method that returns a BDDFactory.
      * If it fails, it falls back to the "java" factory.</p>
      * 
@@ -83,7 +83,7 @@ public abstract class BDDFactory {
                 return MicroFactory.init(nodenum, cachesize);
             if (bddpackage.equals("jdd"))
                 return JDDFactory.init(nodenum, cachesize);
-            if (bddpackage.equals("test"))
+            if (bddpackage.equals("runExample"))
                 return TestBDDFactory.init(nodenum, cachesize);
             if (bddpackage.equals("typed"))
                 return TypedBDDFactory.init(nodenum, cachesize);

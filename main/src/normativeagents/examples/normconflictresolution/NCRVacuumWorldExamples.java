@@ -32,7 +32,7 @@ import static normativeagents.single.domains.vacuum.state.VacuumState.CLASS_ROBO
 /**
  * Created by dkasenberg on 4/6/18.
  */
-public class VacuumWorldExamples {
+public class NCRVacuumWorldExamples {
 
     protected VacuumState startStateScenario1() {
         VacuumRobot robot = new VacuumRobot(CLASS_ROBOT,10,10,10,
@@ -288,7 +288,7 @@ public class VacuumWorldExamples {
     }
 
     public static void main(String[] args) {
-        VacuumWorldExamples examples = new VacuumWorldExamples();
+        NCRVacuumWorldExamples examples = new NCRVacuumWorldExamples();
         examples.runExample1();
         examples.runExample2();
         examples.runExample3();

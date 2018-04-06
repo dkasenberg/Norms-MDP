@@ -20,10 +20,10 @@ import static normativeagents.single.domains.slimchance.SlimChanceDomain.VAR_GOO
 /**
  * Created by dkasenberg on 4/6/18.
  */
-public class SlimChanceExample {
+public class NCRSlimChanceExample {
 
     public static void main(String[] args) {
-        SlimChanceExample example = new SlimChanceExample();
+        NCRSlimChanceExample example = new NCRSlimChanceExample();
         example.runExample(0.01);
     }
 
